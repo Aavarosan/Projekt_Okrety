@@ -2,8 +2,8 @@
 Ten moduł zawiera stałe używane w projekcie.
 """
 # Stałe - Obrazy i obiekty graficzne:
-LOGO = 'imgs/logo.png'
-ICON = 'imgs/icon.png'
+LOGO = 'images/logo.png'
+ICON = 'images/icon.png'
 ALLY_SHOT = 'x'
 
 # Stałe - Koordynaty i wymiary:
@@ -32,13 +32,12 @@ LOST, WON = 0, 1
 NO_BACKGROUND = 1
 
 # Stałe - Kolory:
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-LIGHT_BLUE = (71, 195, 239)
-LIGHT_RED = (239, 71, 111)
-LIGHT_GREY = (150, 150, 150)
-DEEP_GREY = (100, 100, 100)
+TEXT_COLOR = (0, 0, 0)
+SEA_COLOR = (71, 195, 239)
+SHIP_COLOR = (239, 71, 111)
+BUTTONS_COLOR = (150, 150, 150)
+BACKGROUND_COLOR = (100, 100, 100)
 
 # Stałe - SOCKET
 PORT = 8000
-MAX_MSG_SIZE = 1024
+MAX_MESSAGE_SIZE = 1024
