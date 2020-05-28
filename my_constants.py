@@ -6,7 +6,7 @@ LOGO = 'images/logo.png'
 ICON = 'images/icon.png'
 ALLY_SHOT = 'x'
 
-# Stałe - Koordynaty i wymiary:
+# Stałe - Współrzędne i wymiary:
 LOGO_COORDS = (472, 75)
 LEFT_START_COORDS = (20, 5)
 RIGHT_START_COORDS = (645, 5)
