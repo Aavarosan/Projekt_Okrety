@@ -12,22 +12,37 @@ class Tile:
     Klasa magazynująca informacje o danym kafelku.
     """
     def __init__(self):
-        self.if_revealed = False
-        self.if_ship = False
-        self.if_shot = False
+        self.is_revealed = False
+        self.is_ship = False
+        self.is_shot = False
 
     def reset_tile(self):
         """
         Metoda resetująca kafelek podczas ustawiania statków.
         """
-        self.if_revealed = False
-        self.if_ship = False
+        self.is_revealed = False
+        self.is_ship = False
 
     def show_tile(self):
         """
         Metoda sprawiająca, że kafelek jest odkryty.
         """
-        self.if_revealed = True
+        self.is_revealed = True
+
+    def tile_info(self):
+        """
+        Metoda zwracająca informacje o danym kafelku jako tekst.
+        """
+        message = f"{int(self.is_revealed)}{int(self.is_ship)}{int(self.is_shot)}"
+        return message
+
+    def update_tile(self, new_is_revealed, new_is_ship, new_is_shot):
+        """
+        Metoda aktualizująca wartości kafelka.
+        """
+        self.is_revealed = new_is_revealed
+        self.is_ship = new_is_ship
+        self.is_shot = new_is_shot
 
 
 class GameGrid:
@@ -35,8 +50,8 @@ class GameGrid:
     Klasa operująca na danej planszy gry.
     """
     def __init__(self, x_init, y_init):
-        self.game_grid = [[Tile() for _ in range(my_constants.GRID_DIMENTION_SIZE)]
-                          for _ in range(my_constants.GRID_DIMENTION_SIZE)]
+        self.game_grid = [[Tile() for _ in range(my_constants.GRID_DIMENSION_SIZE)]
+                          for _ in range(my_constants.GRID_DIMENSION_SIZE)]
         self.x_init = x_init
         self.y_init = y_init
         self.win_number = my_constants.SHIP_NUMBER
@@ -45,38 +60,40 @@ class GameGrid:
         """
         Metoda służąca do zresetowania położenia statków.
         """
-        for j in self.game_grid:
-            for i in j:
-                i.if_revealed, i.if_ship = False, False
+        for row in self.game_grid:
+            for tile in row:
+                tile.reset_tile()
 
     def print_grid(self, screen):
         """
         Metoda odświeżająca aktualny stan danej planszy na ekranie.
         """
-        for i in range(my_constants.GRID_DIMENTION_SIZE):
-            for j in range(my_constants.GRID_DIMENTION_SIZE):
+        for i in range(my_constants.GRID_DIMENSION_SIZE):
+            for j in range(my_constants.GRID_DIMENSION_SIZE):
 
-                if not self.game_grid[j][i].if_revealed:
+                if not self.game_grid[j][i].is_revealed:
                     temp_color = my_constants.BLACK
-                elif not self.game_grid[j][i].if_ship:
+                elif not self.game_grid[j][i].is_ship:
                     temp_color = my_constants.LIGHT_BLUE
                 else:
                     temp_color = my_constants.LIGHT_RED
                 pygame.draw.rect(screen.my_screen, temp_color,
-                                 (self.x_init + j * my_constants.TILE_SPACE
-                                  + j * my_constants.TILE_SIZE,
-                                  self.y_init + i * my_constants.TILE_SPACE
-                                  + i * my_constants.TILE_SIZE,
+                                 (self.x_init + j * (my_constants.TILE_SPACE +
+                                                     my_constants.TILE_SIZE),
+                                  self.y_init + i * (my_constants.TILE_SPACE +
+                                                     my_constants.TILE_SIZE),
                                   my_constants.TILE_SIZE,
                                   my_constants.TILE_SIZE))
-                if self.game_grid[j][i].if_shot\
-                        and self.x_init < my_constants.RIGHT_START_COORDS[0]:
+                if (self.game_grid[j][i].is_shot
+                        and self.x_init < my_constants.RIGHT_START_COORDS[0]):
                     text = screen.font.render(my_constants.ALLY_SHOT, True, my_constants.BLACK)
                     text_r = text.get_rect()
-                    text_r.center = (self.x_init + j * my_constants.TILE_SPACE
-                                     + j * my_constants.TILE_SIZE + my_constants.TILE_SIZE // 2,
-                                     self.y_init + i * my_constants.TILE_SPACE
-                                     + i * my_constants.TILE_SIZE + my_constants.TILE_SIZE // 2)
+                    text_r.center = (self.x_init + j * (my_constants.TILE_SPACE +
+                                                        my_constants.TILE_SIZE) +
+                                     my_constants.TILE_SIZE // 2,
+                                     self.y_init + i * (my_constants.TILE_SPACE +
+                                                        my_constants.TILE_SIZE) +
+                                     my_constants.TILE_SIZE // 2)
                     screen.my_screen.blit(text, text_r)
 
     def check_ship(self, x_ship: int, y_ship: int, len_ship: int, directory: int) -> bool:
@@ -85,24 +102,25 @@ class GameGrid:
         """
         ship_test = 0
         if directory == my_constants.POZIOM:
-            coords = (y_ship, x_ship)
+            coordinate_i, coordinate_j = y_ship, x_ship
         else:
-            coords = (x_ship, y_ship)
-        for i in range(coords[0] + 1, coords[0] - 2, -1):
-            for j in range(coords[1] - 1, coords[1] + len_ship + 1):
+            coordinate_i, coordinate_j = x_ship, y_ship
+        for i in range(coordinate_i + 1, coordinate_i - 2, -1):
+            for j in range(coordinate_j - 1, coordinate_j + len_ship + 1):
                 try:
                     if i < 0 or j < 0:
                         continue
                     if directory == my_constants.POZIOM:
-                        ship_test += self.game_grid[j][i].if_ship
+                        ship_test += self.game_grid[j][i].is_ship
                     else:
-                        ship_test += self.game_grid[i][j].if_ship
+                        ship_test += self.game_grid[i][j].is_ship
 
                 except IndexError:
-                    if len_ship > 1 and coords[1] + 1 > 10 - (len_ship - 1):
+                    if (len_ship > 1
+                            and coordinate_j + 1 >
+                            my_constants.GRID_DIMENSION_SIZE - (len_ship - 1)):
                         ship_test += 1
-                    else:
-                        pass
+
         return bool(not ship_test)
 
     def place_ship(self, x_ship: int, y_ship: int, len_ship: int, directory: int):
@@ -114,27 +132,25 @@ class GameGrid:
             for i in range(len_ship):
                 tiles_list.append(x_ship + i)
             for i in tiles_list:
-                self.game_grid[i][y_ship].if_revealed = True
-                self.game_grid[i][y_ship].if_ship = True
+                self.game_grid[i][y_ship].is_revealed = True
+                self.game_grid[i][y_ship].is_ship = True
         elif directory == my_constants.PION:
             for i in range(len_ship):
                 tiles_list.append(y_ship + i)
             for i in tiles_list:
-                self.game_grid[x_ship][i].if_revealed = True
-                self.game_grid[x_ship][i].if_ship = True
+                self.game_grid[x_ship][i].is_revealed = True
+                self.game_grid[x_ship][i].is_ship = True
 
     def get_tile(self, x_location: int, y_location: int):
         """
         Metoda zwracająca indeks naciśniętego kafelka.
         """
-        for i in range(10):
-            y_init = self.y_init + i * my_constants.TILE_SPACE + i * my_constants.TILE_SIZE
-            y_final = self.y_init + (i + 1) * my_constants.TILE_SPACE + \
-                (i + 1) * my_constants.TILE_SIZE
-            for j in range(10):
+        for i in range(my_constants.GRID_DIMENSION_SIZE):
+            y_init = self.y_init + i * (my_constants.TILE_SPACE + my_constants.TILE_SIZE)
+            y_final = self.y_init + (i + 1) * (my_constants.TILE_SPACE + my_constants.TILE_SIZE)
+            for j in range(my_constants.GRID_DIMENSION_SIZE):
                 x_init = self.x_init + j * my_constants.TILE_SPACE + j * my_constants.TILE_SIZE
-                x_final = self.x_init + (j + 1) * my_constants.TILE_SPACE + \
-                    (j + 1) * my_constants.TILE_SIZE
+                x_final = self.x_init + (j + 1) * (my_constants.TILE_SPACE + my_constants.TILE_SIZE)
                 if x_init < x_location < x_final and y_init < y_location < y_final:
                     coords = j, i
                     return coords
@@ -154,15 +170,15 @@ class GameGrid:
             return True
         return False
 
-    def check_message(self, my_screen, coords):
+    def check_message(self, my_screen, x_coord, y_coord):
         """
         Metoda informująca o rezultacie strzału gracza.
         """
-        if self.game_grid[coords[0]][coords[1]].if_ship \
-                and not self.game_grid[coords[0]][coords[1]].if_shot:
+        if (self.game_grid[x_coord][y_coord].is_ship
+                and not self.game_grid[x_coord][y_coord].is_shot):
             my_screen.prompter("Trafiony, strzelaj ponownie", my_constants.BANNER_COORDS)
-        elif not self.game_grid[coords[0]][coords[1]].if_ship \
-                and not self.game_grid[coords[0]][coords[1]].if_shot:
+        elif (not self.game_grid[x_coord][y_coord].is_ship
+              and not self.game_grid[x_coord][y_coord].is_shot):
             my_screen.prompter("Pudło", my_constants.BANNER_COORDS)
         else:
             my_screen.prompter("Tu już było strzelane", my_constants.BANNER_COORDS)
@@ -212,8 +228,8 @@ class MyScreen:
                     x_start, y_start = my_constants.START_COORDS[:2]
                     x_end = x_start + my_constants.START_COORDS[2]
                     y_end = x_start + my_constants.START_COORDS[2]
-                    if x_start < point_location[0] < x_end \
-                            and y_start < point_location[1] < y_end:
+                    if (x_start < point_location[0] < x_end
+                            and y_start < point_location[1] < y_end):
                         running = False
                         self.my_screen.fill(my_constants.DEEP_GREY)
 
@@ -229,10 +245,7 @@ class MyScreen:
         running = True
         while running:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
+                if event.type in (pygame.QUIT, pygame.KEYDOWN):
                     pygame.quit()
                     sys.exit()
 
@@ -244,13 +257,13 @@ class MyScreen:
         self.prompter("Reset", my_constants.RESET_COORDS)
         running = True
         while running:
-            for i in range(1, my_constants.MAX_SHIP_LENGTH + 1):
-                if not ship(grid, self, i):
+            for ship_number in range(1, my_constants.MAX_SHIP_LENGTH + 1):
+                if not ship(grid, self, ship_number):
                     break
             else:
-                for i in grid.game_grid:
-                    for j in i:
-                        j.if_revealed = True
+                for row in grid.game_grid:
+                    for tile in row:
+                        tile.show_tile()
                 return False
             return True
 
@@ -328,8 +341,8 @@ def enemy_turn(screen: MyScreen, my_socket,
         if message:
             info = enemy_shot_decoder(message)
 
-            if ally_grid.game_grid[info[0]][info[1]].if_ship \
-                    and not ally_grid.game_grid[info[0]][info[1]].if_shot:
+            if (ally_grid.game_grid[info[0]][info[1]].is_ship
+                    and not ally_grid.game_grid[info[0]][info[1]].is_shot):
                 ally_grid.win_number -= 1
             print(ally_grid.win_number)
             win_info = 1 if ally_grid.win_number == 0 else 0
@@ -338,10 +351,10 @@ def enemy_turn(screen: MyScreen, my_socket,
             pygame.time.wait(100)
             if not ally_grid.win_number:
                 screen.final_screen(my_constants.LOST)
-            if not ally_grid.game_grid[info[0]][info[1]].if_ship \
-                    and not ally_grid.game_grid[info[0]][info[1]].if_shot:
+            if (not ally_grid.game_grid[info[0]][info[1]].is_ship
+                    and not ally_grid.game_grid[info[0]][info[1]].is_shot):
                 enemy = False
-            ally_grid.game_grid[info[0]][info[1]].if_shot = True
+            ally_grid.game_grid[info[0]][info[1]].is_shot = True
             ally_grid.print_grid(screen)
 
     enemy_grid.print_grid(screen)
@@ -365,13 +378,13 @@ def my_turn(screen: MyScreen, my_socket, ally_grid: GameGrid, enemy_grid: GameGr
                     message = my_shot_encode(*tile_coords, ally_grid.win_number)
                     send_data(my_socket, message)
                     message = receive_data(my_socket)
-                    msg_info = shot_decode_update(enemy_grid, message, tile_coords)
+                    msg_info = shot_decode_update(enemy_grid, message, *tile_coords)
                     if msg_info[3]:
                         screen.final_screen(my_constants.WON)
-                    enemy_grid.check_message(screen, tile_coords)
+                    enemy_grid.check_message(screen, *tile_coords)
                     enemy_grid.print_grid(screen)
-                    if not enemy_grid.game_grid[tile_coords[0]][tile_coords[1]].if_ship\
-                            and not enemy_grid.game_grid[tile_coords[0]][tile_coords[1]].if_shot:
+                    if (not enemy_grid.game_grid[tile_coords[0]][tile_coords[1]].is_ship
+                            and not enemy_grid.game_grid[tile_coords[0]][tile_coords[1]].is_shot):
                         your_turn = False
     ally_grid.print_grid(screen)
 
@@ -396,9 +409,10 @@ def enemy_shot_decoder(message: bytes) -> list:
     Funkcja dekodująca wiadomość dotyczącą strzału przeciwnika.
     """
     info = message.decode()
-    info = [int(info[0]), int(info[1]), int(info[2])] \
-        if len(info) == 3 \
-        else [int(info[0]), int(info[1]), int(info[2]) + int(info[3])]
+    if len(info) == 3:
+        info = [int(info[0]), int(info[1]), int(info[2])]
+    else:
+        info = [int(info[0]), int(info[1]), int(info[2]) + int(info[3])]
     return info
 
 
@@ -407,9 +421,7 @@ def my_response_encoder(grid: GameGrid, x_coord: int,
     """
     Funkcja kodująca informacje o kafelku, w który strzelił przeciwnik.
     """
-    message = (f"{int(grid.game_grid[x_coord][y_coord].if_revealed)}"
-               f"{int(grid.game_grid[x_coord][y_coord].if_ship)}"
-               f"{int(grid.game_grid[x_coord][y_coord].if_shot)}{win_message}")
+    message = f"{grid.game_grid[x_coord][y_coord].tile_info()}{win_message}"
     return message
 
 
@@ -421,13 +433,32 @@ def my_shot_encode(x_tile: int, y_tile: int, win_info: int) -> str:
     return message
 
 
-def shot_decode_update(grid, message: bytes, tile_coords: tuple) -> list:
+def shot_decode_update(grid, message: bytes, x_coord: int, y_coord: int) -> list:
     """
     Funkcja dekodująca informacje zwrotną o oddanym przez gracza strzale.
     """
     info = message.decode()
     info = [bool(int(i)) for i in info]
-    grid.game_grid[tile_coords[0]][tile_coords[1]].if_revealed = info[0]
-    grid.game_grid[tile_coords[0]][tile_coords[1]].if_ship = info[1]
-    grid.game_grid[tile_coords[0]][tile_coords[1]].if_shot = info[2]
+    print(info)
+    grid.game_grid[x_coord][y_coord].update_tile(*info[:3])
     return info
+
+
+def initialise_game(screen: MyScreen, ally_grid, enemy_grid):
+    """
+    Funkcja wyświetlająca ekran początkowy i uruchamiająca pętle ustawiania statków.
+    """
+    # Wyświetlenie ekranu początkowego gry, oczekiwanie na wciśnięcie 'Start'
+    screen.hello_screen()
+
+    # Oczyszczenie ekranu
+    screen.clean_screen(ally_grid, enemy_grid)
+
+    # Ustawianie Statków na planszy
+    ships = True
+    while ships:
+        ships = screen.placing_ships(ally_grid)
+
+    # Oczyszczenie ekranu
+    screen.clean_screen(ally_grid, enemy_grid)
+    screen.prompter("Oczekiwanie na połączenie z drugim graczem", my_constants.BANNER_COORDS)

@@ -17,24 +17,12 @@ def main():
     my_screen = battleship.MyScreen("GRACZ 2")
     enemy_grid = battleship.GameGrid(*my_constants.RIGHT_START_COORDS)
     your_grid = battleship.GameGrid(*my_constants.LEFT_START_COORDS)
+    my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Wyświetlenie ekranu początkowego gry, oczekiwanie na wciśnięcie 'Start'
-    my_screen.hello_screen()
-
-    # Oczyszczenie ekranu
-    my_screen.clean_screen(your_grid, enemy_grid)
-
-    # Ustawianie Statków na planszy
-    ships = True
-    while ships:
-        ships = my_screen.placing_ships(your_grid)
-
-    # Oczyszczenie ekranu
-    my_screen.clean_screen(your_grid, enemy_grid)
+    # Inicjalizacja gry
+    battleship.initialise_game(my_screen, your_grid, enemy_grid)
 
     # Połączenie z graczem
-    my_screen.prompter("Oczekiwanie na połączenie z drugim graczem", my_constants.BANNER_COORDS)
-    my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while True:
         pygame.event.pump()
         try:
