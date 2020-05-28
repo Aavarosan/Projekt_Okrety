@@ -14,9 +14,14 @@ class TileTest(unittest.TestCase):
     def setUp(self):
         self.tile = battleship.Tile()
 
-    def test_reset_tile_result(self):
+    def test_reset_tile_result_is_revealed(self):
         self.tile.reset_tile()
-        result = self.tile.is_revealed and self.tile.is_ship
+        result = self.tile.is_revealed
+        self.assertFalse(result)
+
+    def test_reset_tile_result_is_ship(self):
+        self.tile.reset_tile()
+        result = self.tile.is_ship
         self.assertFalse(result)
 
     def test_show_tile_result(self):
@@ -33,16 +38,29 @@ class TileTest(unittest.TestCase):
         test_data = self.tile.tile_info()
         self.assertEqual(test_data, '100')
 
-    def test_update_tile_result(self):
+    def test_update_tile_result_if_revealed(self):
         test_message = b'1111'
         self.tile.update_tile(test_message)
-        result = (self.tile.is_revealed and self.tile.is_ship and self.tile.is_shot)
+        result = self.tile.is_revealed
         self.assertTrue(result)
 
-    def test_update_tile_result_type(self):
+    def test_update_tile_result_if_ship(self):
+        test_message = b'1110'
+        self.tile.update_tile(test_message)
+        result = self.tile.is_ship
+        self.assertTrue(result)
+
+    def test_update_tile_result_if_shot(self):
+        test_message = b'0111'
+        self.tile.update_tile(test_message)
+        result = self.tile.is_shot
+        self.assertTrue(result)
+
+    def test_update_tile_returns_type_list(self):
         test_message = b'0101'
-        test_result = self.tile.update_tile(test_message)
-        self.assertIsInstance(test_result, list)
+        result = self.tile.update_tile(test_message)
+        self.assertIsInstance(result, list)
+        self.assertEqual(result, [0, 1, 0, 1])
 
 
 class GameGridTest(unittest.TestCase):
@@ -52,7 +70,7 @@ class GameGridTest(unittest.TestCase):
     def setUp(self):
         self.grid = battleship.GameGrid(20, 5)
 
-    def test_check_ship_of_lenght_1_correct(self):
+    def test_check_ship_of_length_1_correct(self):
         x_test = 3
         y_test = 5
         ship_length_test = 1
@@ -68,11 +86,12 @@ class GameGridTest(unittest.TestCase):
         result = self.grid.check_ship(x_test, y_test, ship_length_test, directory_test)
         self.assertFalse(result)
 
-    def test_get_tile_returns_tuple(self):
+    def test_get_tile_returns_type_tuple(self):
         x_test = 60
         y_test = 40
         result = self.grid.get_tile(x_test, y_test)
         self.assertIsInstance(result, tuple)
+        self.assertEqual(result, (0, 0))
 
     def test_get_tile_returns_false(self):
         x_test = 600
@@ -89,13 +108,14 @@ class MessageTest(unittest.TestCase):
         self.message_1 = b'1111'
         self.message_2 = b'011'
 
-    def test_enemy_shot_decoder_return_lenght(self):
+    def test_enemy_shot_decoder_returns_type_list(self):
         result = battleship.enemy_shot_decoder(self.message_1)
-        self.assertEqual(len(result), 3)
+        self.assertIsInstance(result, list)
+        self.assertEqual(result, [1, 1, 2])
 
-    def test_enemy_shot_decoder_returns_true(self):
+    def test_enemy_shot_decoder_returns_value(self):
         result = battleship.enemy_shot_decoder(self.message_2)
-        self.assertTrue(result[-1])
+        self.assertEqual(result, [0, 1, 1])
 
 
 if __name__ == '__main__':
