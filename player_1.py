@@ -2,9 +2,7 @@
 Moduł zawiera funkcję rozgrywki dla gracza 1.
 """
 import socket
-
 import pygame
-
 import battleship
 import my_constants
 

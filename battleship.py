@@ -348,7 +348,6 @@ def enemy_turn(screen: MyScreen, my_socket,
             if (ally_grid.game_grid[info[0]][info[1]].is_ship
                     and not ally_grid.game_grid[info[0]][info[1]].is_shot):
                 ally_grid.win_number -= 1
-            print(ally_grid.win_number)
             win_info = 1 if not ally_grid.win_number else 0
             message = my_response_encoder(ally_grid, *info[:2], win_info)
             send_data(my_socket, message)
